@@ -26,8 +26,8 @@ Instale a biblioteca: Abra o terminal (ou Prompt de Comando) dentro da pasta do 
 ```bash
 composer require dompdf/dompdf
 ```
----
-Isso criará automaticamente a pasta vendor/ e o arquivo composer.json necessários para o sistema funcionar.
+*Isso criará automaticamente a pasta vendor/ e o arquivo composer.json necessários para o sistema funcionar.*
+___
 
 ### 3. Configuração do Banco de Dados
 1. Importe o arquivo sistema_orcamentos.sql no seu phpMyAdmin.
@@ -37,10 +37,10 @@ Isso criará automaticamente a pasta vendor/ e o arquivo composer.json necessár
 $pdo = new PDO('mysql:host=localhost;dbname=sistema_orcamentos', 'root', '');
 ?>
 ```
+___
 
-4. Cadastrando seu Primeiro Usuário
+### 4. Cadastrando seu Primeiro Usuário
 Como o sistema utiliza criptografia de senha, siga estes passos para criar seu acesso:
-
 1. Crie um arquivo chamado hash.php na raiz e cole o código abaixo:
 ```php
 <?php echo password_hash("SUA_SENHA_AQUI", PASSWORD_DEFAULT); ?>
@@ -74,4 +74,4 @@ Edite os campos de identificação nos arquivos indicados:
 
 ## 📝 Licença
 Este sistema foi desenvolvido como uma ferramenta de gestão interna.
-Desenvolvido por [Igor Gomes ETI].
+Desenvolvido por **Igor Gomes ETI**.

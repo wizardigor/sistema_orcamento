@@ -54,7 +54,7 @@ Como o sistema utiliza criptografia de senha, siga estes passos para criar seu a
 1. Informações da Empresa (PDF)
 Edite os campos de identificação nos arquivos indicados:
 
-### No arquivo gerar_pdf.php:
+## No arquivo gerar_pdf.php:
 - Localize o bloco de "FORNECEDOR" para alterar Nome da Empresa e CNPJ.
 - Localize o bloco de "footer" para atualizar seu endereço completo, telefone e slogan.
 

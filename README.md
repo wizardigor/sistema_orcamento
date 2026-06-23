@@ -42,9 +42,9 @@ $pdo = new PDO('mysql:host=localhost;dbname=sistema_orcamentos', 'root', '');
 Como o sistema utiliza criptografia de senha, siga estes passos para criar seu acesso:
 
 1. Crie um arquivo chamado hash.php na raiz e cole o código abaixo:
-
+```php
 <?php echo password_hash("SUA_SENHA_AQUI", PASSWORD_DEFAULT); ?>
-
+```
 2. Acesse http://localhost/seu-projeto/hash.php no navegador.
 3. Copie o código gerado na tela.
 4. Vá ao seu banco de dados, na tabela usuarios, e cole esse código no campo senha.

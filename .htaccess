@@ -1,0 +1,13 @@
+# Desativa a listagem de pastas
+Options -Indexes
+
+# Ativa o motor de reescrita
+RewriteEngine On
+
+# Se a URL solicitada não for um arquivo existente
+RewriteCond %{REQUEST_FILENAME} !-f
+# Se a URL solicitada não for um diretório existente
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Adiciona .php automaticamente se o arquivo existir
+RewriteRule ^([a-zA-Z0-9_-]+)$ $1.php [L]

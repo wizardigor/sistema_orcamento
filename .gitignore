@@ -1,0 +1,26 @@
+# --- Configurações sensíveis ---
+# O db.php contém suas senhas de banco de dados, nunca deve ir para o GitHub.
+# db.php
+
+# --- Pastas de dependências ---
+# Bibliotecas instaladas pelo Composer
+vendor/
+
+# --- Arquivos temporários e de log ---
+# Pastas do IDE (como VS Code ou PHPStorm)
+.vscode/
+.idea/
+
+# Logs de erro e arquivos temporários do servidor
+*.log
+*.tmp
+*.bak
+
+# --- Arquivos gerados pelo sistema ---
+# Se você gera PDFs dentro da pasta do projeto, não os envie para o GitHub
+*.pdf
+
+# --- Configurações do SO ---
+# Arquivos ocultos do macOS ou Windows
+.DS_Store
+Thumbs.db

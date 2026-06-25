@@ -3,15 +3,10 @@ require 'auth.php';
 require 'db.php';
 require 'vendor/autoload.php';
 
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+
 use Dompdf\Dompdf;
 use Dompdf\Options;
-
-$options = new Options();
-$options->set('isRemoteEnabled', true); // Permite imagens externas
-$options->set('isHtml5ParserEnabled', true);
-$options->set('isPhpEnabled', true); // Permite funções PHP se necessário
-
-$dompdf = new Dompdf($options);
 
 // 1. Busca dados do orçamento
 $id = $_GET['id'];
@@ -24,14 +19,19 @@ $stmt_itens = $pdo->prepare("SELECT * FROM orcamento_itens WHERE orcamento_id = 
 $stmt_itens->execute([$id]);
 $itens = $stmt_itens->fetchAll();
 
+// Processamento da Logo
 $path = $_SERVER['DOCUMENT_ROOT'] . '/orcamento/logo.png';
 $type = pathinfo($path, PATHINFO_EXTENSION);
 $data = file_get_contents($path);
-$base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+$base64 = 'data:image/' . $type . ';base64,' . str_replace(["\r", "\n"], '', base64_encode($data));
 
 $titulo_documento = ($orc['tipo_documento'] == 'ORC') ? 'ORÇAMENTO' : 'PROPOSTA';
 
-// 3. Montagem do HTML com CSS
+// Cálculo dinâmico de CPF ou CNPJ
+$doc_limpo = preg_replace('/[^0-9]/', '', $orc['cliente_documento']);
+$label_doc = (strlen($doc_limpo) <= 11) ? 'CPF:' : 'CNPJ:';
+
+// 3. Montagem do HTML
 $html = "
 <html>
 <head>
@@ -42,26 +42,17 @@ $html = "
         .logo { width: 150px; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        
-        /* Tabela de Itens */
         .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .items-table th, .items-table td { border: 1px solid #000; padding: 8px; }
         .adicionais-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        .adicionais-table th, .adicionais-table td { border: 1px solid #000;}
-        
-        /* Rodapé */
+        .adicionais-table th, .adicionais-table td { border: 1px solid #000; padding: 5px; }
         .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; border-top: 1px solid #000; padding-top: 5px; }
     </style>
 </head>
 <body>
-
     <table class='header-table'>
-        <tr>
-            <td class='text-right'><img src='{$base64}' class='logo'></td>
-        </tr>
-        <tr>
-            <td class='text-center'><h1>PROPOSTA COMERCIAL/ORÇAMENTO</h1></td>
-        </tr>
+        <tr><td class='text-right'><img src='{$base64}' class='logo'></td></tr>
+        <tr><td class='text-center'><h1>PROPOSTA COMERCIAL/ORÇAMENTO</h1></td></tr>
         <tr>
             <td class='text-right'>
                 <p style='font-size: 14px;'>
@@ -72,50 +63,25 @@ $html = "
         </tr>
     </table>
 
-    <table class='header-table'>
-        
-    </table>
-
-    <table class='header-table' style='margin-top:20px;'>
-        <tr>
-            <td style='width: 50%; vertical-align:top;'>
-                <strong>CLIENTE:</strong><br>
-                {$orc['cliente_nome']}<br>
-                DOC: {$orc['cliente_documento']}
-            </td>
-            <td style='width: 50%; vertical-align:top;'>
-                <strong>FORNECEDOR:</strong><br>
-                NOME DA SUA EMPRESA LTDA<br>
-                CNPJ: 00.000.000/0000-00
-            </td>
-        </tr>
-    </table>
-
-    <div style='margin-top: 20px; padding: 10px; border: 0px;'>
-        <strong>Objeto da Proposta:</strong>
-        <p>{$orc['objeto_proposta']}</p>
-    </div>
+    <div style='margin-top: 20px;'><strong>Objeto da Proposta:</strong><p>{$orc['objeto_proposta']}</p></div>
 
     <table class='items-table'>
-        <thead>
-            <tr><th>Código</th><th>Descrição</th><th>Cor</th><th>Qtd.</th><th>Vl. Unit.</th><th>Subtotal</th></tr>
-        </thead>
+        <thead><tr><th>Código</th><th>Descrição</th><th>Cor</th><th>Qtd.</th><th>Vl. Unit.</th><th>Subtotal</th></tr></thead>
         <tbody>";
 foreach ($itens as $i) {
-    $html .= "<tr><td>{$i['item_codigo']}</td><td>{$i['descricao']}</td><td>{$i['cor']}</td><td>{$i['quantidade']}</td><td>R$ {$i['valor_unitario']}</td><td>R$ {$i['subtotal']}</td></tr>";
+    $valor_unit = number_format($i['valor_unitario'], 2, ',', '.');
+    $subtotal = number_format($i['subtotal'], 2, ',', '.');
+    $html .= "<tr><td>{$i['item_codigo']}</td><td>{$i['descricao']}</td><td>{$i['cor']}</td><td>{$i['quantidade']}</td><td>R$ {$valor_unit}</td><td>R$ {$subtotal}</td></tr>";
 }
-$html .= "
-        </tbody>
-    </table>
+$html .= "</tbody></table>
 
-    <h3 style='text-align:right;'>VALOR GLOBAL: R$ {$orc['valor_total']}</h3>
+    <h3 style='text-align:right;'>VALOR GLOBAL DA PROPOSTA: R$ " . number_format($orc['valor_total'], 2, ',', '.') . "</h3>
 
     <table class='adicionais-table'>
-        <tr><td><strong>Validade da proposta:</strong></td><td>{$orc['validade']}</td></tr>
+        <tr><td><strong>Validade:</strong></td><td>{$orc['validade']}</td></tr>
         <tr><td><strong>Prazo de entrega:</strong></td><td>{$orc['prazo_entrega']}</td></tr>
         <tr><td><strong>Condição de pagamento:</strong></td><td>{$orc['condicao_pagamento']}</td></tr>
         <tr><td><strong>Garantia:</strong></td><td>{$orc['garantia']}</td></tr>
-        <tr><td><strong>Data de emissão:</strong></td><td>" . date('d/m/Y', strtotime($orc['data_emissao'])) . "</td></tr>
     </table>
 
     <div style='margin-top: 20px; padding: 10px; border: 0px;'>
@@ -131,9 +97,14 @@ $html .= "
 </body>
 </html>";
 
-// 4. Renderização
-$dompdf = new Dompdf();
+// 4. Renderização com limpeza de buffer
+if (ob_get_length()) ob_end_clean();
+
+$options = new Options();
+$options->set('isRemoteEnabled', true);
+$dompdf = new Dompdf($options);
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-$dompdf->stream("Orcamento_" . $orc['id'] . ".pdf");
+$dompdf->stream("Orcamento_" . $orc['id'] . ".pdf", ["Attachment" => true]);
+exit;

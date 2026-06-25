@@ -33,8 +33,17 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label>CPF/CNPJ:</label>
-                        <input type="text" name="cliente_documento" class="form-control" required>
+                        <div class="col-md-3">
+                            <label>Tipo de Documento:</label>
+                            <select name="tipo_doc" class="form-control">
+                                <option value="CPF">CPF</option>
+                                <option value="CNPJ">CNPJ</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label>Número do Documento:</label>
+                            <input type="text" name="cliente_documento" class="form-control" placeholder="Apenas números">
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <label>Data:</label>
